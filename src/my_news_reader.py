@@ -14,11 +14,9 @@ class DBNewsReader:
     
     # returns a list of news sources
     def get_news_sources(self):               
-        srcs=[]
-        i=0
+        srcs=[]        
         for key, val in self.newsSources.items() :
-            srcs.append(key)
-            i = i + 1        
+            srcs.append(key)            
         return srcs
     
     def get_news_sources_as_text(self):

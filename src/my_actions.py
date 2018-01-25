@@ -14,8 +14,8 @@ import aiy.voicehat
 from google.assistant.library import Assistant
 from google.assistant.library.event import EventType
 
-ROOMCLIMATE_FILE = locker.getContent("roomsensor","current")
 
+ROOMCLIMATE_FILE = locker.getContent("roomsensor","current")
 #returns a data set tuple e.g. {'temp':50, 'humidity':100 }
 def get_room_temp():
     f = open(ROOMCLIMATE_FILE,'r')
@@ -42,13 +42,14 @@ def play_song_new_thread(pshell,songName):
          time.sleep(1)
     pkill = subprocess.Popen(["/usr/bin/pkill","vlc"],stdin=subprocess.PIPE)    
 
+# Wrapper method to the play_song_new_thread by initiating a new thread 
 def play_song(songName):
     global playshell
     _thread.start_new_thread(play_song_new_thread,(playshell,songName))
- 
+
+# kills the mpsyt and vlc player processes thereby stopping the player
 def stop_playing():
     global playshell
-
     subprocess.Popen(["/usr/bin/pkill","vlc"],stdin=subprocess.PIPE)
     if playshell != None:
         subprocess.Popen(["/usr/bin/pkill","mpsyt"],stdin=subprocess.PIPE)
@@ -69,7 +70,7 @@ def get_news(feedName):
             feedKey = keys[i]
             break
         else:
-            feedKey = keys[0]
+            feedKey = keys[0] # feedKey can be set to the first source outside of for player if no feedName matched
     #print('getting news for: ',feedKey)
     newsD  = c.get_news(feedKey)
     

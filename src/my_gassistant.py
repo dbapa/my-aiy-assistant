@@ -15,6 +15,8 @@ import time
 
 import my_actions 
 
+# All the hotwords for custom actions listed below. detail handling of custom actions
+# is implemented in my_actions module. Only action handler wrappers to be added in-line
 PLAYSONG_HOTWORD = 'play song'
 STOPSONG_HOTWORD = 'stop playing'
 ROOMTEMP_HOTWORD = 'current room temperature'
@@ -26,43 +28,43 @@ PLAYNEWSHEADLINES_HOTWORDS = ['news','headlines']
 START_CRYPTO_FEED = "start bitcoin feed"
 STOP_CRYPTO_FEED = "stop bitcoin feed"
 BEDROOM_LIGHT = "bedroom light"
+POWER_OFF = ['shutdown','power off']
 
 logging.basicConfig(
     level=logging.INFO,
     format="[%(asctime)s] %(levelname)s:%(name)s:%(message)s"
 )
 
-def play_music_mode(text,assistant,event):        
+# Custom action handler wrapper to start playing youtube songs using mpsyt and vlc player
+def play_music(text,assistant,event):        
     songName = text.replace(PLAYSONG_HOTWORD, '', 1) 
     aiy.audio.say('Searching the song %s' % songName)    
     my_actions.play_song(songName)
+
+# this method does not work as the box doesnt get into listening mode while playing song
+def stop_song():
+    my_actions.stop_playing()
+               
     
 def play_news_feeds():    
     src = my_actions.get_news_feeds()
-    aiy.audio.say(str('I have the news from the following sources; %s ' % src))
+    aiy.audio.say(str('I have new feeds from the following sources; %s ' % src))
  
 def play_headlines():
     newsD = my_actions.get_news('The Washington Post')
     for key, val in newsD.items() :
         aiy.audio.say(key)
         aiy.audio.say('.')
-    newsD = my_actions.get_news('The Hindu')
 
         
 def play_news(text):    
     feedName1 = text.replace(PLAYNEWS_HOTWORD1, '', 1) 
-    #feedName2 = text.replace(PLAYNEWS_HOTWORD2, '', 1)     
     newsD = my_actions.get_news(feedName1)
     for key, val in newsD.items() :
         aiy.audio.say(key)
         aiy.audio.say('.')
         aiy.audio.say(val)
         aiy.audio.say('..')
-
-# this method does not work as the box doesnt get into listening mode while playing song
-def stop_song():
-    my_actions.stop_playing()
-               
 
 def power_off_pi():
     aiy.audio.say('Good bye!')
@@ -86,6 +88,7 @@ def room_temp():
         strToSay = 'The humidity in the room is ' + str(temp['humidity'])+ ' percent'
         aiy.audio.say(strToSay)
     
+# This is the main event handler method from the google assistant source
 def process_event(assistant, event):
     status_ui = aiy.voicehat.get_status_ui()
     print("in the process event:",event)
@@ -100,12 +103,9 @@ def process_event(assistant, event):
     elif event.type == EventType.ON_RECOGNIZING_SPEECH_FINISHED and event.args:
         print('You said:', event.args['text'])
         text = event.args['text'].lower()
-        if text == 'power off':
+        if checkAnyHotwords(text,POWER_OFF):
             assistant.stop_conversation()
             power_off_pi()
-        elif text == 'shutdown':
-            assistant.stop_conversation()
-            power_off_pi()            
         elif text == 'reboot':
             assistant.stop_conversation()
             reboot_pi()
@@ -115,7 +115,7 @@ def process_event(assistant, event):
         elif PLAYSONG_HOTWORD in text:
             assistant.stop_conversation()
             #print('text:',text)
-            play_music_mode(text,assistant,event)
+            play_music(text,assistant,event)
         elif ROOMTEMP_HOTWORD in text:
             assistant.stop_conversation()
             room_temp()
@@ -158,7 +158,7 @@ def main():
         for event in assistant.start():
             process_event(assistant, event)
     
-# will return true if the text contains all the hotwords from the list
+# will return true if the text contains all the hotwords from the list HOTWORDS
 def checkHotwords(text, HOTWORDS):
     flag = False
     for i in range(len(HOTWORDS)):
@@ -166,6 +166,15 @@ def checkHotwords(text, HOTWORDS):
             flag = True
         else :
             flag = False
+    return flag
+
+# will return true if the text contains any of the hotwords from the list of HOTWORDS
+def checkAnyHotwords(text, HOTWORDS):
+    flag = False
+    for i in range(len(HOTWORDS)):
+        if HOTWORDS[i] in text:
+            flag = True
+            break        
     return flag
 
 if __name__ == '__main__':
