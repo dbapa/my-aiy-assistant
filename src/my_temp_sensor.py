@@ -2,6 +2,9 @@ import dht11
 import time
 import datetime
 import RPi.GPIO as GPIO
+import my_locker as locker
+
+VOICE_HAT_PIN = int(locker.getContent("gpio","dht_bcm_pin"))
 
 def main():
     # initialize GPIO
@@ -9,7 +12,16 @@ def main():
     GPIO.setmode(GPIO.BCM)
     GPIO.cleanup()
     # read data using pin 14
-    instance = dht11.DHT11(pin=4)
+    # pin-4: (BCM 0 Driver 0 on Voice HAT)
+    # pin-17: (BCM 17 Driver 1 on Voice HAT)
+    # pin-27: (BCM 27 Driver 2 on Voice HAT)
+    # pin-22: (BCM 22 Driver 3 on Voice HAT)
+    # pin-26: (BCM 26 Servo 0 on Voice HAT) - to be used in current config
+    
+
+    instance = dht11.DHT11(VOICE_HAT_PIN)
+    # print ("PIN set in instance is:",instance._DHT11__pin)
+    # print (type(instance._DHT11__pin))
     while True:
         result = instance.read()
         if result.is_valid():
@@ -27,8 +39,14 @@ def getCurrent():
     #print('gpio setup initiated')
   
     # read data using pin 14
-    instance = dht11.DHT11(4)
+    #print ("reading bcm pin:",VOICE_HAT_PIN)
+    instance = dht11.DHT11(pin=VOICE_HAT_PIN)
     i = 0
+    '''
+    Will make 10 attempts to read the temp from the sensor. This is  
+    required compensate for any errors in reading sensor data due to 
+    any delays in code execution (hardware I/O better in C)
+    '''
     while i < 10:
         result = instance.read()
         if result.is_valid():
