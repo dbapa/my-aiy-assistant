@@ -18,5 +18,5 @@ def play_song(songName):
     playshell.stdin.write(bytes('/' + songName + '\n 1 \n', 'utf-8'))
     playshell.stdin.flush()
 
-play_song('guns and roses')
+# play_song('guns and roses')
 
